@@ -1,0 +1,62 @@
+name: Build CLI
+
+# Offload Next.js + CLI pack from weak local CPU. Produces a downloadable
+# npm pack tarball. Optional npm publish when NPM_TOKEN secret is set.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      publish_npm:
+        description: "Also npm publish (needs NPM_TOKEN secret)"
+        type: boolean
+        default: false
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          # Only needed when publish_npm=true; harmless otherwise
+          registry-url: https://registry.npmjs.org
+
+      - name: Install root deps
+        run: npm install --no-audit --no-fund
+
+      - name: Build Next.js app + pack CLI
+        # cli/scripts/build-cli.js runs `npm run build` then assembles cli/app
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+          NEXT_TELEMETRY_DISABLED: "1"
+        run: npm run cli:pack
+
+      - name: Upload CLI tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: 9router-cli-${{ github.sha }}
+          path: |
+            9router-*.tgz
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish to npm
+        if: >
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
+          || (github.event_name == 'workflow_dispatch' && inputs.publish_npm == true)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "NPM_TOKEN secret not set — skip publish"
+            exit 0
+          fi
+          npm --prefix cli publish --access public
