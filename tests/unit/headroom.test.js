@@ -202,6 +202,57 @@ describe("compressWithHeadroom", () => {
     expect(stats).toBeNull();
     expect(global.fetch).not.toHaveBeenCalled();
   });
+
+  it("compresses commandcode params.messages in-place", async () => {
+    global.fetch = vi.fn(async () => new Response(JSON.stringify({
+      messages: [{ role: "user", content: [{ type: "text", text: "short" }] }],
+      tokens_before: 100,
+      tokens_after: 20,
+      tokens_saved: 80,
+    }), { status: 200 }));
+    const body = {
+      threadId: "t1",
+      params: {
+        model: "gpt-5.6-luna",
+        messages: [{ role: "user", content: [{ type: "text", text: "long context" }] }],
+      },
+    };
+    const diagnostics = {};
+
+    const stats = await compressWithHeadroom(body, {
+      enabled: true,
+      url: "http://headroom:8787",
+      model: "gpt-5.6-luna",
+      format: "commandcode",
+      diagnostics,
+    });
+
+    expect(stats.tokens_saved).toBe(80);
+    expect(body.params.messages[0].content[0].text).toBe("short");
+    expect(body.threadId).toBe("t1");
+    expect(diagnostics.reason).toBeUndefined();
+    expect(global.fetch).toHaveBeenCalledWith(
+      "http://headroom:8787/v1/compress",
+      expect.objectContaining({ method: "POST" }),
+    );
+  });
+
+  it("skips commandcode when params.messages missing", async () => {
+    global.fetch = vi.fn();
+    const diagnostics = {};
+    const body = { params: { model: "gpt-5.6-luna" } };
+
+    const stats = await compressWithHeadroom(body, {
+      enabled: true,
+      url: "http://localhost:8787",
+      format: "commandcode",
+      diagnostics,
+    });
+
+    expect(stats).toBeNull();
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(diagnostics.reason).toBe("unsupported commandcode request shape");
+  });
 });
 
 describe("formatHeadroomLog", () => {

@@ -18,6 +18,7 @@ function jsonBytes(value) {
 function messagePayload(body) {
   if (Array.isArray(body?.messages)) return body.messages;
   if (Array.isArray(body?.input)) return body.input;
+  if (Array.isArray(body?.params?.messages)) return body.params.messages;
   const kiro = collectKiroHeadroomMessages(body);
   if (kiro) return kiro.messages;
   return null;
@@ -310,6 +311,19 @@ export async function compressWithHeadroom(body, { enabled, url, model, format, 
       if (!applyKiroHeadroomMessages(projection, data.messages, diagnostics)) return null;
       if (diagnostics) diagnostics.after = captureSizeSnapshot(body);
       return data;
+    }
+
+    // CommandCode shape: messages are nested inside body.params.messages.
+    if (format === "commandcode") {
+      if (body.params && Array.isArray(body.params.messages)) {
+        const data = await callCompress(url, body.params.messages, model, timeoutMs, compressUserMessages, diagnostics || {});
+        if (!data) return null;
+        body.params.messages = data.messages;
+        if (diagnostics) diagnostics.after = captureSizeSnapshot(body);
+        return data;
+      }
+      setDiagnostic(diagnostics, `unsupported ${format || "unknown"} request shape`);
+      return null;
     }
 
     // OpenAI shape: messages/input go straight to the proxy.
