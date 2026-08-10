@@ -179,3 +179,20 @@ describe("openaiToCommandCodeRequest — tools schema conversion", () => {
     expect(out.params.tools).toBeUndefined();
   });
 });
+
+describe("openaiToCommandCodeRequest — reasoning_effort", () => {
+  it("forwards reasoning_effort into params so max reaches CommandCode upstream", () => {
+    const out = openaiToCommandCodeRequest("gpt-5.6-luna", {
+      messages: [{ role: "user", content: "hi" }],
+      reasoning_effort: "max",
+    }, true);
+    expect(out.params.reasoning_effort).toBe("max");
+  });
+
+  it("omits params.reasoning_effort when body has none", () => {
+    const out = openaiToCommandCodeRequest(MODEL, {
+      messages: [{ role: "user", content: "hi" }],
+    }, true);
+    expect(out.params.reasoning_effort).toBeUndefined();
+  });
+});

@@ -34,10 +34,15 @@ const FORMAT_LEVELS = {
 const CODEX_GPT_5_6_LEVELS = ["none", "minimal", "low", "medium", "high", "xhigh", "max"];
 
 // Model-name pattern overrides (glob, first match wins) — more precise than format default.
+// GPT-5.6 max/ultra is Codex-native, but CommandCode also hosts the same model ids
+// (custom model gpt-5.6-luna) and must not clamp max→xhigh via FORMAT_LEVELS.openai.
 const PATTERN_THINKING = [
   { provider: "codex", pattern: "*gpt-5.6-sol*", levels: [...CODEX_GPT_5_6_LEVELS, "ultra"] },
   { provider: "codex", pattern: "*gpt-5.6-terra*", levels: [...CODEX_GPT_5_6_LEVELS, "ultra"] },
   { provider: "codex", pattern: "*gpt-5.6-luna*", levels: CODEX_GPT_5_6_LEVELS },
+  { provider: "commandcode", pattern: "*gpt-5.6-sol*", levels: [...CODEX_GPT_5_6_LEVELS, "ultra"] },
+  { provider: "commandcode", pattern: "*gpt-5.6-terra*", levels: [...CODEX_GPT_5_6_LEVELS, "ultra"] },
+  { provider: "commandcode", pattern: "*gpt-5.6-luna*", levels: CODEX_GPT_5_6_LEVELS },
   { pattern: "*codex*", levels: ["low", "medium", "high", "xhigh"] }, // codex cannot disable thinking
 ];
 

@@ -22,6 +22,12 @@ export class CommandCodeExecutor extends BaseExecutor {
 
   transformRequest(model, body, stream, credentials) {
     body.stream = true;
+    // applyThinking sets reasoning_effort on the envelope top-level; CommandCode
+    // reads params.*. Move it in so max/xhigh/etc actually reach upstream.
+    if (body?.reasoning_effort && body.params && typeof body.params === "object") {
+      body.params.reasoning_effort = body.reasoning_effort;
+      delete body.reasoning_effort;
+    }
     return body;
   }
 

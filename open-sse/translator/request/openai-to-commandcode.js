@@ -148,6 +148,10 @@ export function openaiToCommandCodeRequest(model, body, stream /* , credentials 
   const tools = convertTools(body.tools);
   if (tools) params.tools = tools;
   if (body.top_p != null) params.top_p = body.top_p;
+  // Thinking is re-applied after translation onto the envelope top-level
+  // (applyThinking). Also seed params so a pre-set effort survives if
+  // present on the OpenAI body (e.g. passthrough / tests).
+  if (body.reasoning_effort) params.reasoning_effort = body.reasoning_effort;
 
   const today = new Date().toISOString().slice(0, 10);
 
