@@ -174,6 +174,18 @@ export const PROVIDER_CAPABILITIES = {
     "deepseek-v4-flash":  { vision: true, reasoning: true, thinkingFormat: "openai", thinkingCanDisable: false, contextWindow: 1000000, maxOutput: 50000 },
     "deepseek-v3-2-volc": { reasoning: true, thinkingFormat: "openai", thinkingCanDisable: false, contextWindow: 96000, maxOutput: 32000 },
   },
+  // ClinePass — OpenAI-compatible gateway. cline-pass/* ids otherwise fall through
+  // to vendor-native formats (zai/kimi/qwen) which ClinePass rejects.
+  "clinepass": {
+    "cline-pass/glm-5.2":           { reasoning: true, thinkingFormat: "openai", contextWindow: 1000000, maxOutput: 48000 },
+    "cline-pass/kimi-k2.7-code":    { reasoning: true, thinkingFormat: "openai", thinkingCanDisable: false, contextWindow: 262144, maxOutput: 32000 },
+    "cline-pass/kimi-k2.6":         { reasoning: true, thinkingFormat: "openai", thinkingCanDisable: false, contextWindow: 256000, maxOutput: 32000 },
+    "cline-pass/deepseek-v4-pro":   { reasoning: true, thinkingFormat: "openai", thinkingCanDisable: false, contextWindow: 1000000, maxOutput: 50000 },
+    "cline-pass/deepseek-v4-flash": { reasoning: true, thinkingFormat: "openai", thinkingCanDisable: false, contextWindow: 1000000, maxOutput: 50000 },
+    "cline-pass/minimax-m3":        { vision: true, reasoning: true, thinkingFormat: "openai", contextWindow: 512000, maxOutput: 48000 },
+    "cline-pass/qwen3.7-max":       { reasoning: true, thinkingFormat: "openai", contextWindow: 1000000, maxOutput: 65536 },
+    "cline-pass/qwen3.7-plus":      { reasoning: true, thinkingFormat: "openai", contextWindow: 1000000, maxOutput: 65536 },
+  },
   // Poolside Laguna — OpenAI-compatible, all reasoning-capable (32K max output).
   "poolside": {
     "laguna-s-2.1":  { reasoning: true, thinkingFormat: "openai", contextWindow: 1000000, maxOutput: 32000 },

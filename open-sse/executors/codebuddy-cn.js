@@ -52,11 +52,14 @@ export class CodeBuddyExecutor extends DefaultExecutor {
     // thinking pipeline sets reasoning_effort only when the client asks, and never
     // sets reasoning_summary — so reasoning never shows. Mirror the CLI here.
     const eff = transformed.reasoning_effort;
-    if (eff === "none" || eff === "off") {
+    // CodeBuddy upstream only honors "high" (ignores xhigh/max).
+    const normalizedEff = eff === "xhigh" || eff === "max" ? "high" : eff;
+    if (normalizedEff === "none" || normalizedEff === "off") {
       delete transformed.reasoning_effort; // gateway has no "none" — just omit
-    } else if (eff) {
+    } else if (normalizedEff) {
       // Client explicitly asked for reasoning — mirror the CLI's reasoning_summary
       // so CodeBuddy surfaces the model's reasoning.
+      transformed.reasoning_effort = normalizedEff;
       transformed.reasoning_summary = "auto";
     }
     // No reasoning requested: leave both unset. Forcing reasoning_effort:"medium"

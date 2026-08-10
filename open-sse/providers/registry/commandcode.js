@@ -21,6 +21,7 @@ export default {
   transport: {
     baseUrl: "https://api.commandcode.ai/alpha/generate",
     format: "commandcode",
+    thinkingFormat: "openai",
     forceStream: true,
     headers: {
       "x-command-code-version": "0.25.7",

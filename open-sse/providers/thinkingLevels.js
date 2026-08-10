@@ -43,7 +43,20 @@ const PATTERN_THINKING = [
   { provider: "commandcode", pattern: "*gpt-5.6-sol*", levels: [...CODEX_GPT_5_6_LEVELS, "ultra"] },
   { provider: "commandcode", pattern: "*gpt-5.6-terra*", levels: [...CODEX_GPT_5_6_LEVELS, "ultra"] },
   { provider: "commandcode", pattern: "*gpt-5.6-luna*", levels: CODEX_GPT_5_6_LEVELS },
+  // CodeBuddy CN upstream only honors "high" (ignores xhigh/max). Show max
+  // in the UI level picker; the executor maps max→high on the wire (#clientName).
+  { provider: "codebuddy-cn", pattern: "*", levels: CODEX_GPT_5_6_LEVELS },
   { pattern: "*codex*", levels: ["low", "medium", "high", "xhigh"] }, // codex cannot disable thinking
+  // ClinePass is an OpenAI-compatible gateway — its cline-pass/* model ids
+  // get mis-matched by the generic PATTERN_CAPABILITIES (e.g. *kimi* → kimi,
+  // *glm-5* → zai), which produce wrong wire shapes for the OpenAI endpoint.
+  // Force max-enabled levels via the registry transport.thinkingFormat override.
+  { provider: "clinepass", pattern: "*cline-pass*", levels: CODEX_GPT_5_6_LEVELS },
+  // CommandCode is also OpenAI-compatible — non-gpt-5.6 models (deepseek, kimi,
+  // GLM, etc.) get their vendor-native thinkingFormat via capabilities.js, but
+  // CommandCode's params.shape expects reasoning_effort as the only thinking
+  // wire. Force max-enabled levels so every CommandCode model can use max effort.
+  { provider: "commandcode", pattern: "*", levels: CODEX_GPT_5_6_LEVELS },
 ];
 
 // Returns valid thinking levels for a model, or null when the model has no reasoning.
