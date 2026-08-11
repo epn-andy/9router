@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { createProviderConnection } from "@/models";
 import { decodeXaiIdTokenEmail, extractEmailFromAccessToken } from "@/lib/oauth/providerHelpers";
 
+const GROK_PROVIDER = "grok-cli";
+const MAX_IMPORT_CONNECTIONS = 100;
+
 /**
  * POST /api/providers/import
  * Bulk import OAuth connections for a provider (e.g. grok-cli).
@@ -56,6 +59,12 @@ export async function POST(request) {
       { status: 400 }
     );
   }
+  if (connections.length > MAX_IMPORT_CONNECTIONS) {
+    return NextResponse.json(
+      { error: `Too many connections (max ${MAX_IMPORT_CONNECTIONS})` },
+      { status: 400 }
+    );
+  }
 
   // A bare array can use each account's provider field (the grok-bot export
   // format). Token-only arrays must use the wrapped { provider, connections }
@@ -72,6 +81,13 @@ export async function POST(request) {
   if (!provider || typeof provider !== "string") {
     return NextResponse.json(
       { error: "Missing provider (e.g. \"grok-cli\")" },
+      { status: 400 }
+    );
+  }
+  provider = provider.trim();
+  if (provider !== GROK_PROVIDER) {
+    return NextResponse.json(
+      { error: `Only ${GROK_PROVIDER} OAuth connections are supported` },
       { status: 400 }
     );
   }

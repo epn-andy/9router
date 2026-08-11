@@ -117,10 +117,25 @@ describe("POST /api/providers/import", () => {
     expect(res.body.error).toMatch(/provider/i);
   });
 
+  it("rejects non-grok providers", async () => {
+    const res = await POST(makeRequest({ provider: "codex", connections: [{ accessToken: "t" }] }));
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/grok-cli/i);
+  });
+
   it("requires at least one connection", async () => {
     const res = await POST(makeRequest({ provider: "grok-cli", connections: [] }));
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/connections/i);
+  });
+
+  it("rejects oversized batches", async () => {
+    const res = await POST(makeRequest({
+      provider: "grok-cli",
+      connections: Array.from({ length: 101 }, (_, i) => ({ accessToken: `t${i}` })),
+    }));
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/too many/i);
   });
 
   it("reports per-item failures without aborting the batch", async () => {
