@@ -26,6 +26,7 @@ const FORMAT_LEVELS = {
   qwen: L.base,
   kimi: L.levelMax,
   deepseek: L.hiMax,
+  commandcode: ["none", "low", "medium", "high", "xhigh", "max"],
   minimax: L.onOff,
   hunyuan: L.base,
   step: L.base,
@@ -58,6 +59,12 @@ const PATTERN_THINKING = [
   // CommandCode's params.shape expects reasoning_effort as the only thinking
   // wire. Force max-enabled levels so every CommandCode model can use max effort.
   { provider: "commandcode", pattern: "*", levels: CODEX_GPT_5_6_LEVELS },
+  // DeepSeek v4.* (Alibaba MaaS, probed live): effort low|medium|high|xhigh|max
+  // all 200 via output_config.effort; "none" is a 400 on the anthropic route
+  // (disable thinking instead). none kept for the picker = disable.
+  // NOTE: provider-agnostic pattern — placed after the provider catch-alls above
+  // so provider-specific entries still win on first match.
+  { pattern: "*deepseek-v4.*", levels: ["none", "low", "medium", "high", "xhigh", "max"] },
   // codebuddy-cn per-model effort sets — the server's product-config payload
   // publishes `reasoning.supportedEfforts` per model. NOTE: the chat endpoint
   // accepts any level you send (probed none/minimal/low/medium/high/xhigh/max
@@ -70,6 +77,8 @@ const PATTERN_THINKING = [
   { provider: "codebuddy-cn", pattern: "deepseek-v4*", levels: ["low", "high", "xhigh"] },
   { provider: "codebuddy-cn", pattern: "hy3*",         levels: ["low", "high"] },
   { provider: "codebuddy-cn", pattern: "hy4*",         levels: ["high"] },
+  // codebuddy-intl rides the same gateway catalog, so its deepseek levels match.
+  { provider: "codebuddy-intl", pattern: "deepseek-v4*", levels: ["low", "high", "xhigh"] },
 ];
 
 // Returns valid thinking levels for a model, or null when the model has no reasoning.
