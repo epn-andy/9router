@@ -7,6 +7,7 @@ data/
 src/
 docs/
 /test/
+tests/
 agents/
 scripts/
 worker/
