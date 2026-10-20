@@ -31,6 +31,7 @@ const FORMAT_LEVELS = {
   minimax: L.onOff,
   hunyuan: L.base,
   step: L.base,
+  nous: L.base,
 };
 
 const CODEX_GPT_5_6_LEVELS = ["none", "minimal", "low", "medium", "high", "xhigh", "max"];
@@ -42,6 +43,8 @@ const CLAUDE_NO_XHIGH = ["none", "low", "medium", "high", "max"];
 // GPT-5.6 max/ultra is Codex-native, but CommandCode also hosts the same model ids
 // (custom model gpt-5.6-luna) and must not clamp max→xhigh via FORMAT_LEVELS.openai.
 const PATTERN_THINKING = [
+  // Gemini 4 (Argon) rejects "minimal" with 400 — LOW is the floor; cannot disable thinking.
+  { pattern: "*gemini-4*", levels: ["low", "medium", "high"] },
   { pattern: "*claude*4.6*", levels: CLAUDE_NO_XHIGH },
   { pattern: "*claude*4-6*", levels: CLAUDE_NO_XHIGH },
   { provider: "codex", pattern: "*gpt-6*", levels: CODEX_GPT_5_6_LEVELS },
@@ -73,21 +76,35 @@ const PATTERN_THINKING = [
   // (disable thinking instead). none kept for the picker = disable.
   // NOTE: provider-agnostic pattern — placed after the provider catch-alls above
   // so provider-specific entries still win on first match.
+  // ⚠️ The codebuddy-cn exact ids below MUST stay above this unqualified glob —
+  // PATTERN_THINKING is first-match-wins, so a later provider-qualified entry
+  // would never fire for dotted ids like deepseek-v4.1-flash.
+  { provider: "codebuddy-cn", pattern: "deepseek-v4-pro",     levels: ["low", "high", "xhigh"] },
+  { provider: "codebuddy-cn", pattern: "deepseek-v4.1-flash", levels: ["low", "high", "max"] },
   { pattern: "*deepseek-v4.*", levels: ["none", "low", "medium", "high", "xhigh", "max"] },
   // codebuddy-cn per-model effort sets — the server's product-config payload
   // publishes `reasoning.supportedEfforts` per model. NOTE: the chat endpoint
   // accepts any level you send (probed none/minimal/low/medium/high/xhigh/max
   // → all 200), but values outside a model's supportedEfforts are silently
   // clamped, so the declared set stays authoritative for the picker. Models
-  // that publish no supportedEfforts (glm-5.1 / glm-5v-turbo / kimi-k2.x /
-  // kimi-k3-1 / minimax-m3) fall through to the openai format default.
-  { provider: "codebuddy-cn", pattern: "glm-5.3*",     levels: ["low", "high", "max"] },
+  // that publish no supportedEfforts (glm-5.1 / kimi-k3-1 / minimax-m3)
+  // fall through to the openai format default.
+  { provider: "codebuddy-cn", pattern: "glm-5.3",      levels: ["low", "high", "max"] },
+  { provider: "codebuddy-cn", pattern: "glm-5.3-flash", levels: ["low", "high", "max"] },
   { provider: "codebuddy-cn", pattern: "glm-5.2",      levels: ["high", "xhigh"] },
-  { provider: "codebuddy-cn", pattern: "deepseek-v4*", levels: ["low", "high", "xhigh"] },
-  { provider: "codebuddy-cn", pattern: "hy3*",         levels: ["low", "high"] },
-  { provider: "codebuddy-cn", pattern: "hy4*",         levels: ["high"] },
+  { provider: "codebuddy-cn", pattern: "kimi-k2.8-preview",  levels: ["low", "medium", "high"] },
+  { provider: "codebuddy-cn", pattern: "hy3",          levels: ["low", "high"] },
+  { provider: "codebuddy-cn", pattern: "hy4-preview",  levels: ["high"] },
   // codebuddy-intl rides the same gateway catalog, so its deepseek levels match.
   { provider: "codebuddy-intl", pattern: "deepseek-v4*", levels: ["low", "high", "xhigh"] },
+  // MiniMax Code (mcode) — adaptive effort via output_config.effort. M3.1
+  // always thinks (no none); M3 is switchable with none/high only, per the
+  // magpie static catalog. M2.7 pair falls through to the claude-adaptive
+  // set minus none (canDisable: false).
+  { provider: "minimax-code", pattern: "MiniMax-M3.1*", levels: ["low", "medium", "high", "xhigh", "max"] },
+  { provider: "minimax-code", pattern: "MiniMax-M3", levels: ["none", "high"] },
+  { provider: "minimax-code-global", pattern: "MiniMax-M3.1*", levels: ["low", "medium", "high", "xhigh", "max"] },
+  { provider: "minimax-code-global", pattern: "MiniMax-M3", levels: ["none", "high"] },
 ];
 
 // Returns valid thinking levels for a model, or null when the model has no reasoning.
