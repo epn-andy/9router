@@ -13,9 +13,20 @@ export class CodeBuddyIntlExecutor extends DefaultExecutor {
     super("codebuddy-intl");
   }
 
+  buildHeaders(credentials, stream = true, url, model, body = null) {
+    const headers = super.buildHeaders(credentials, stream, url, model, body);
+    headers["X-Conversation-ID"] = crypto.randomUUID();
+    headers["X-Conversation-Request-ID"] = crypto.randomUUID();
+    headers["X-Conversation-Message-ID"] = crypto.randomUUID();
+    return headers;
+  }
+
   transformRequest(model, body, stream, credentials) {
     const transformed = super.transformRequest(model, body, stream, credentials);
     transformed.stream = true;
+    if (transformed.model === "deepseek-4.1-flash" || transformed.model === "deepseek-4-1-flash") {
+      transformed.model = "deepseek-v4.1-flash";
+    }
 
     const eff = transformed.reasoning_effort;
     if (eff === "none" || eff === "off") {

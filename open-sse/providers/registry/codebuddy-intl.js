@@ -45,6 +45,8 @@ export default {
   },
   // Same model lineup exposed by the CN gateway — intl backend is the same catalog.
   models: [
+    { id: "deepseek-v4.1-flash", name: "DeepSeek-V4.1-Flash" },
+    { id: "deepseek-4.1-flash", name: "DeepSeek-4.1-Flash (Alias)" },
     { id: "glm-5.2", name: "GLM-5.2" },
     { id: "glm-5.1", name: "GLM-5.1" },
     { id: "glm-5.0", name: "GLM-5.0" },
