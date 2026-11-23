@@ -23,9 +23,14 @@ export default {
     format: "commandcode",
     thinkingFormat: "openai",
     forceStream: true,
+    // Static identity headers of command-code@1.88.5 buildCommandAuthHeaders().
+    // x-project-slug and x-session-id are dynamic — see shared/commandCodeHeaders.js.
     headers: {
-      "x-command-code-version": "0.25.7",
-      "x-cli-environment": "cli",
+      "User-Agent": "cli",
+      "x-command-code-version": "1.88.5",
+      "x-cli-environment": "production",
+      "x-cli-surface": "cli",
+      "x-taste-learning": "false",
     },
   },
   models: [
@@ -52,7 +57,10 @@ export default {
     { id: "stepfun/Step-3.7-Flash", name: "Step 3.7 Flash" },
     { id: "stepfun/Step-3.5-Flash", name: "Step 3.5 Flash" },
     { id: "nvidia/nemotron-3-ultra-550b-a55b", name: "Nemotron 3 Ultra" },
+    { id: "google/gemini-4-carbon", name: "Gemini 4 Carbon" },
+    { id: "claude-fable-5-2", name: "Claude Fable 5.2" },
   ],
+  passthroughModels: true,
   features: {
     usage: true,
     usageApikey: true,
